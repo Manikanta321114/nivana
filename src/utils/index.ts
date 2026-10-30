@@ -127,3 +127,15 @@ export const getStatusBadgeClass = (status: string): string => {
   }
   return map[status] ?? 'badge-pending'
 }
+
+// ── API URL resolver ──────────────────────────────────────────────
+/**
+ * Resolves full API URL with environment variable support for production.
+ * In production (Vercel), VITE_API_BASE_URL points to the Render backend (e.g. https://nivasa-api.onrender.com).
+ * In development, falls back to VITE_API_BASE_URL or relative path.
+ */
+export const getApiUrl = (endpoint: string): string => {
+  const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '')
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+  return base ? `${base}${path}` : path
+}

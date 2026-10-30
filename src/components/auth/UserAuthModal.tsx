@@ -14,6 +14,8 @@ export const UserAuthModal: React.FC = () => {
     isAuthModalOpen,
     authModalMode,
     pendingRedirectUrl,
+    isSupabaseLive,
+    isDevMode,
     closeAuthModal,
     openLoginModal,
     openSignupModal,
@@ -25,11 +27,10 @@ export const UserAuthModal: React.FC = () => {
   const navigate = useNavigate()
 
   // Form states
-  const [phoneOrEmail, setPhoneOrEmail] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
-  const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -44,9 +45,7 @@ export const UserAuthModal: React.FC = () => {
     setError(null)
     setLoading(true)
 
-    // Simulate network delay
-    await new Promise(r => setTimeout(r, 400))
-    const res = login(phoneOrEmail, password)
+    const res = await login(email, password)
     setLoading(false)
 
     if (!res.success) {
@@ -62,8 +61,7 @@ export const UserAuthModal: React.FC = () => {
     setError(null)
     setLoading(true)
 
-    await new Promise(r => setTimeout(r, 400))
-    const res = signup(fullName, phone, email)
+    const res = await signup(fullName, email, password, phone)
     setLoading(false)
 
     if (!res.success) {
@@ -92,7 +90,7 @@ export const UserAuthModal: React.FC = () => {
             <Lock size={22} />
           </div>
           <span className="text-[11px] font-bold uppercase tracking-wider text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full border border-primary-200/60">
-            NIVASA Verified Access
+            {isSupabaseLive ? 'Supabase Auth' : 'NIVASA Verified Access'}
           </span>
         </div>
 
@@ -103,7 +101,7 @@ export const UserAuthModal: React.FC = () => {
           </h3>
           <p className="text-xs sm:text-sm text-stone-500 mt-1 leading-relaxed">
             {authModalMode === 'LOGIN'
-              ? 'Please log in to view verified property addresses, schedule visits, and contact owners.'
+              ? 'Please sign in to view verified property addresses, schedule visits, and contact owners.'
               : 'Join NIVASA to request free callbacks, book site visits, and explore curated homes.'}
           </p>
         </div>
@@ -149,16 +147,16 @@ export const UserAuthModal: React.FC = () => {
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wide mb-1.5">
-                Mobile Number or Email
+                Email Address
               </label>
               <div className="relative">
-                <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
-                  type="text"
+                  type="email"
                   required
-                  placeholder="e.g. 9876543210 or your@email.com"
-                  value={phoneOrEmail}
-                  onChange={e => setPhoneOrEmail(e.target.value)}
+                  placeholder="your.email@example.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   className="input-base pl-9 text-sm"
                   autoFocus
                 />
@@ -168,15 +166,16 @@ export const UserAuthModal: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wide">
-                  Password / PIN
+                  Password
                 </label>
-                <span className="text-[11px] text-stone-400">(optional for demo)</span>
+                {!isSupabaseLive && <span className="text-[11px] text-stone-400">(optional in demo)</span>}
               </div>
               <div className="relative">
                 <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
                   type="password"
-                  placeholder="Enter password or leave blank for demo"
+                  required={isSupabaseLive}
+                  placeholder="••••••••"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="input-base pl-9 text-sm"
@@ -220,16 +219,16 @@ export const UserAuthModal: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wide mb-1.5">
-                10-Digit Mobile Number
+                Email Address
               </label>
               <div className="relative">
-                <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
-                  type="tel"
+                  type="email"
                   required
-                  placeholder="e.g. 9876543210"
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
+                  placeholder="e.g. priya@example.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   className="input-base pl-9 text-sm"
                 />
               </div>
@@ -237,15 +236,33 @@ export const UserAuthModal: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wide mb-1.5">
-                Email Address (Optional)
+                Password {isSupabaseLive && <span className="text-stone-400 text-[10px] lowercase">(min 6 characters)</span>}
               </label>
               <div className="relative">
-                <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
-                  type="email"
-                  placeholder="e.g. priya@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  type="password"
+                  required={isSupabaseLive}
+                  minLength={6}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="input-base pl-9 text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wide mb-1.5">
+                10-Digit Mobile Number (Optional)
+              </label>
+              <div className="relative">
+                <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <input
+                  type="tel"
+                  placeholder="e.g. 9876543210"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
                   className="input-base pl-9 text-sm"
                 />
               </div>
@@ -265,25 +282,28 @@ export const UserAuthModal: React.FC = () => {
           </form>
         )}
 
-        {/* Divider */}
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-stone-200" />
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-white px-3 text-stone-400 font-medium">or test instantly</span>
-          </div>
-        </div>
+        {/* ⚡ Quick One-Click Demo Login (Available ONLY in DEV mode) */}
+        {isDevMode && (
+          <>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-stone-200" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-3 text-stone-400 font-medium">development mode</span>
+              </div>
+            </div>
 
-        {/* ⚡ Quick One-Click Demo Login */}
-        <button
-          type="button"
-          onClick={handleQuickDemo}
-          className="w-full py-2.5 px-4 rounded-xl border border-primary-200 bg-primary-50/70 hover:bg-primary-100 text-primary-800 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
-        >
-          <Sparkles size={15} className="text-primary-600 flex-shrink-0" />
-          <span>Quick Demo Login as <strong>Rahul Sharma</strong></span>
-        </button>
+            <button
+              type="button"
+              onClick={handleQuickDemo}
+              className="w-full py-2.5 px-4 rounded-xl border border-primary-200 bg-primary-50/70 hover:bg-primary-100 text-primary-800 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.99] shadow-sm"
+            >
+              <Sparkles size={15} className="text-primary-600 flex-shrink-0" />
+              <span>Quick Demo Login as <strong>Rahul Sharma</strong></span>
+            </button>
+          </>
+        )}
 
         {/* Privacy guarantees */}
         <div className="mt-4 pt-4 border-t border-stone-100 flex items-center justify-center gap-4 text-[11px] text-stone-400">

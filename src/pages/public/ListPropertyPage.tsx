@@ -4,8 +4,9 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
-  ShieldCheck, CheckCircle2, Sparkles,
-  ArrowRight, Lock, Building2
+  ShieldCheck, Sparkles,
+  ArrowRight, Lock, UploadCloud, X,
+  MapPin, Home, Image as ImageIcon
 } from 'lucide-react'
 import { Input, Textarea, Select, Checkbox } from '../../components/ui/FormFields'
 import { Button } from '../../components/ui/Button'
@@ -13,6 +14,7 @@ import { SuccessState } from '../../components/ui/States'
 import { BENGALURU_LOCALITIES } from '../../constants/localities'
 import { AMENITIES, BHK_OPTIONS, PROPERTY_TYPE_LABELS } from '../../constants/amenities'
 import { generateRef } from '../../utils'
+import { useUserAuth } from '../../hooks/useUserAuth'
 
 const submissionSchema = z.object({
   submitter_name: z.string().min(2, 'Please enter your full name'),
@@ -28,7 +30,7 @@ const submissionSchema = z.object({
   deposit_inr: z.coerce.number().optional(),
   amenities: z.array(z.string()),
   description: z.string().min(10, 'Please provide at least a brief description (10+ characters)'),
-  availability: z.string().min(2, 'Specify availability, e.g. "Available Immediately" or "From Nov 1"'),
+  availability: z.string().min(2, 'Specify availability, e.g. "Available Immediately"'),
   submitter_is_authorized: z.literal(true, {
     errorMap: () => ({ message: 'You must confirm that you are the owner or authorized to list this property.' }),
   }),
@@ -40,8 +42,10 @@ const submissionSchema = z.object({
 type SubmissionFormData = z.infer<typeof submissionSchema>
 
 export const ListPropertyPage: React.FC = () => {
+  const { user } = useUserAuth()
   const [submitted, setSubmitted] = useState(false)
   const [submissionRef, setSubmissionRef] = useState('')
+  const [photos, setPhotos] = useState<{ id: string; url: string; name: string }[]>([])
 
   const {
     register,
@@ -51,36 +55,51 @@ export const ListPropertyPage: React.FC = () => {
   } = useForm<SubmissionFormData>({
     resolver: zodResolver(submissionSchema),
     defaultValues: {
+      submitter_name: user?.full_name || '',
+      submitter_phone: user?.phone || '',
       property_type: 'APARTMENT',
       bhk: 2,
-      amenities: [],
+      amenities: ['parking', 'lift', 'power_backup'],
       availability: 'Available Immediately',
     },
   })
 
-  const onSubmit = async (data: SubmissionFormData) => {
-    // Simulate API submission
-    await new Promise(r => setTimeout(r, 1000))
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return
+    const files = Array.from(e.target.files)
+    const newPhotos = files.map(f => ({
+      id: Math.random().toString(36).substring(7),
+      url: URL.createObjectURL(f),
+      name: f.name,
+    }))
+    setPhotos(prev => [...prev, ...newPhotos].slice(0, 12))
+  }
+
+  const removePhoto = (id: string) => {
+    setPhotos(prev => prev.filter(p => p.id !== id))
+  }
+
+  const onSubmit = async () => {
+    await new Promise(r => setTimeout(r, 900))
     const ref = generateRef('SUB')
     setSubmissionRef(ref)
     setSubmitted(true)
-    console.info('[DEMO] Property submission received:', { ...data, submission_ref: ref })
   }
 
   if (submitted) {
     return (
-      <div className="pt-24 pb-16 page-container max-w-3xl">
-        <div className="bg-white rounded-3xl shadow-card border border-stone-100 p-8 sm:p-12 text-center animate-fade-in">
+      <div className="pt-28 pb-20 page-container max-w-3xl">
+        <div className="bg-white rounded-3xl shadow-card border border-stone-200/90 p-8 sm:p-12 text-center animate-fade-in">
           <SuccessState
             title="Property Submission Received!"
             refNumber={submissionRef}
-            description="Thank you for listing with NIVASA. Your property has been placed in our verification queue."
+            description="Thank you for listing with NIVASA. Your property has been placed in our verification queue. Zero brokerage guaranteed."
             action={
               <div className="mt-8 space-y-4">
                 <div className="bg-stone-50 rounded-2xl p-6 text-left border border-stone-200/80">
-                  <h3 className="text-sm font-semibold text-stone-900 mb-3 flex items-center gap-2">
-                    <ShieldCheck size={16} className="text-primary-600" />
-                    What happens next?
+                  <h3 className="text-sm font-bold text-stone-900 mb-3 flex items-center gap-2">
+                    <ShieldCheck size={16} className="text-primary-700" />
+                    What Happens Next?
                   </h3>
                   <ol className="space-y-3 text-xs sm:text-sm text-stone-600">
                     <li className="flex items-start gap-2.5">
@@ -88,7 +107,7 @@ export const ListPropertyPage: React.FC = () => {
                         1
                       </span>
                       <span>
-                        <strong>Verification Call:</strong> Our operations desk will call you within 24 hours to confirm lease details and answer any questions.
+                        <strong>Verification Call:</strong> Our Bengaluru operations desk will call you within 24 hours to confirm lease terms.
                       </span>
                     </li>
                     <li className="flex items-start gap-2.5">
@@ -96,7 +115,7 @@ export const ListPropertyPage: React.FC = () => {
                         2
                       </span>
                       <span>
-                        <strong>Photos & Details Review:</strong> We help format and organize photos to make your property stand out.
+                        <strong>Photos & Details Review:</strong> We enhance photos and verify floor plans to maximize genuine tenant interest.
                       </span>
                     </li>
                     <li className="flex items-start gap-2.5">
@@ -104,7 +123,7 @@ export const ListPropertyPage: React.FC = () => {
                         3
                       </span>
                       <span>
-                        <strong>Go Live:</strong> Your listing is published to thousands of verified seekers across Bengaluru.
+                        <strong>Live on NIVASA:</strong> Your listing goes live and we coordinate physical visits strictly at your approved time.
                       </span>
                     </li>
                   </ol>
@@ -127,72 +146,51 @@ export const ListPropertyPage: React.FC = () => {
   }
 
   return (
-    <div className="pt-20 pb-16 bg-bg-base min-h-screen">
-      {/* Hero Header */}
-      <div className="bg-primary-900 text-white py-12 mb-8">
+    <div className="pt-20 pb-20 bg-stone-50 min-h-screen">
+      {/* Header Banner */}
+      <div className="bg-[#063f45] text-white py-14 mb-8 border-b border-stone-800">
         <div className="page-container max-w-4xl text-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white mb-4 border border-white/20">
-            <Sparkles size={13} className="text-accent-300" />
-            Zero Spam • 100% Free Listing
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-white/10 text-accent-300 mb-4 border border-white/20">
+            <Sparkles size={13} className="text-accent-400" />
+            100% Free Listing • Zero Brokerage • Direct Tenants
           </span>
-          <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tight mb-3">
-            List Your Property in Bengaluru
+          <h1 className="text-3xl sm:text-5xl font-display font-extrabold tracking-tight mb-3">
+            List Your Bengaluru Rental Property
           </h1>
-          <p className="text-white/80 text-base max-w-2xl mx-auto leading-relaxed">
-            Reach verified tenants without publishing your personal contact number to the internet.
-            NIVASA screens inquiries and schedules visits on your behalf.
+          <p className="text-stone-200 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            Reach thousands of verified renters without exposing your personal phone number on open forums.
+            NIVASA protects your privacy and screens inquiries on your behalf.
           </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 max-w-3xl mx-auto text-left">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
-              <ShieldCheck className="text-accent-300 mb-2" size={20} />
-              <p className="text-sm font-semibold text-white">Your Privacy Protected</p>
-              <p className="text-xs text-white/70 mt-1">We never reveal your phone number publicly. No unsolicited calls.</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
-              <CheckCircle2 className="text-accent-300 mb-2" size={20} />
-              <p className="text-sm font-semibold text-white">Verified Seekers Only</p>
-              <p className="text-xs text-white/70 mt-1">Every visit request is confirmed before reaching your schedule.</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
-              <Building2 className="text-accent-300 mb-2" size={20} />
-              <p className="text-sm font-semibold text-white">Bengaluru Localized</p>
-              <p className="text-xs text-white/70 mt-1">Targeted exposure in Koramangala, Indiranagar, HSR, and 30+ hubs.</p>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Main Submission Form */}
       <div className="page-container max-w-3xl">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
 
-          {/* Section 1: Submitter Contact */}
-          <div className="bg-white rounded-3xl shadow-card border border-stone-100 p-6 sm:p-8">
-            <div className="flex items-center gap-2 mb-2 pb-3 border-b border-stone-100">
-              <Lock size={16} className="text-primary-700" />
-              <h2 className="text-lg font-semibold text-stone-900">Your Contact Details</h2>
-              <span className="ml-auto text-xs text-stone-500 bg-stone-100 px-2.5 py-0.5 rounded-full">
-                Kept strictly confidential
+          {/* Section 1: Submitter Info */}
+          <div className="bg-white rounded-3xl shadow-card border border-stone-200/90 p-6 sm:p-8">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-stone-100">
+              <h2 className="text-base font-display font-bold text-stone-900 flex items-center gap-2">
+                <Lock size={16} className="text-primary-700" />
+                1. Owner & Contact Information
+              </h2>
+              <span className="text-[11px] font-bold text-primary-700 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-200">
+                Private & Encrypted
               </span>
             </div>
-            <p className="text-xs text-stone-500 mb-5">
-              These details are only used by NIVASA staff to verify your listing and coordinate visits.
-            </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
                 id="submitter_name"
-                label="Full Name"
+                label="Owner / Representative Name *"
                 placeholder="e.g. Ramesh Kumar"
                 required
                 {...register('submitter_name')}
                 error={errors.submitter_name?.message}
               />
-
               <Input
                 id="submitter_phone"
-                label="Mobile Number (WhatsApp preferred)"
+                label="Mobile Number (WhatsApp) *"
                 placeholder="e.g. 9876543210"
                 type="tel"
                 required
@@ -202,41 +200,20 @@ export const ListPropertyPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 2: Property Specifications */}
-          <div className="bg-white rounded-3xl shadow-card border border-stone-100 p-6 sm:p-8">
-            <h2 className="text-lg font-semibold text-stone-900 mb-2 pb-3 border-b border-stone-100">
-              Property Details
-            </h2>
-            <p className="text-xs text-stone-500 mb-5">
-              Accurate details ensure your home appears in the right tenant searches.
-            </p>
+          {/* Section 2: Basic Property Info */}
+          <div className="bg-white rounded-3xl shadow-card border border-stone-200/90 p-6 sm:p-8">
+            <div className="pb-3 mb-4 border-b border-stone-100">
+              <h2 className="text-base font-display font-bold text-stone-900 flex items-center gap-2">
+                <Home size={16} className="text-primary-700" />
+                2. Property Details & Pricing
+              </h2>
+            </div>
 
             <div className="space-y-4">
-              <div className="w-full">
-                <label htmlFor="locality" className="block text-sm font-medium text-stone-700 mb-1.5">
-                  Locality in Bengaluru <span className="text-red-500 ml-1" aria-hidden="true">*</span>
-                </label>
-                <input
-                  id="locality"
-                  list="locality-list"
-                  placeholder="Type or select locality, e.g. HSR Layout, Koramangala, Whitefield…"
-                  {...register('locality')}
-                  className="input-base"
-                />
-                <datalist id="locality-list">
-                  {BENGALURU_LOCALITIES.map(loc => (
-                    <option key={loc} value={loc} />
-                  ))}
-                </datalist>
-                {errors.locality && (
-                  <p className="mt-1 text-xs text-red-600">{errors.locality.message}</p>
-                )}
-              </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
                   id="property_type"
-                  label="Property Type"
+                  label="Property Type *"
                   required
                   options={Object.entries(PROPERTY_TYPE_LABELS).map(([val, label]) => ({
                     value: val,
@@ -248,7 +225,7 @@ export const ListPropertyPage: React.FC = () => {
 
                 <Select
                   id="bhk"
-                  label="BHK Configuration"
+                  label="Configuration *"
                   required
                   options={BHK_OPTIONS}
                   {...register('bhk')}
@@ -259,8 +236,8 @@ export const ListPropertyPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   id="rent_inr"
-                  label="Expected Monthly Rent (₹)"
-                  placeholder="e.g. 25000"
+                  label="Monthly Rent (₹) *"
+                  placeholder="e.g. 32000"
                   type="number"
                   min="1000"
                   step="500"
@@ -271,8 +248,8 @@ export const ListPropertyPage: React.FC = () => {
 
                 <Input
                   id="deposit_inr"
-                  label="Expected Security Deposit (₹)"
-                  placeholder="e.g. 100000"
+                  label="Security Deposit (₹)"
+                  placeholder="e.g. 150000"
                   type="number"
                   min="0"
                   step="1000"
@@ -280,11 +257,44 @@ export const ListPropertyPage: React.FC = () => {
                   error={errors.deposit_inr?.message}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Section 3: Location */}
+          <div className="bg-white rounded-3xl shadow-card border border-stone-200/90 p-6 sm:p-8">
+            <div className="pb-3 mb-4 border-b border-stone-100">
+              <h2 className="text-base font-display font-bold text-stone-900 flex items-center gap-2">
+                <MapPin size={16} className="text-primary-700" />
+                3. Location in Bengaluru
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="locality" className="block text-xs font-bold text-stone-700 mb-1">
+                  Locality / Hub *
+                </label>
+                <input
+                  id="locality"
+                  list="locality-list"
+                  placeholder="e.g. Indiranagar, HSR Layout, Koramangala, Whitefield..."
+                  {...register('locality')}
+                  className="input-base"
+                />
+                <datalist id="locality-list">
+                  {BENGALURU_LOCALITIES.map(loc => (
+                    <option key={loc} value={loc} />
+                  ))}
+                </datalist>
+                {errors.locality && (
+                  <p className="mt-1 text-xs text-rose-600">{errors.locality.message}</p>
+                )}
+              </div>
 
               <Input
                 id="availability"
-                label="Earliest Move-in Date / Availability"
-                placeholder="e.g. Available Immediately, or From December 1st"
+                label="Earliest Move-in Date *"
+                placeholder="e.g. Immediate / Next Month"
                 required
                 {...register('availability')}
                 error={errors.availability?.message}
@@ -292,8 +302,8 @@ export const ListPropertyPage: React.FC = () => {
 
               <Textarea
                 id="description"
-                label="Property Description & Highlights"
-                rows={4}
+                label="Property Description *"
+                rows={3}
                 placeholder="Describe furnishings, flooring, balcony orientation, nearby metro/landmarks..."
                 required
                 {...register('description')}
@@ -302,14 +312,14 @@ export const ListPropertyPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 3: Amenities */}
-          <div className="bg-white rounded-3xl shadow-card border border-stone-100 p-6 sm:p-8">
-            <h2 className="text-lg font-semibold text-stone-900 mb-2 pb-3 border-b border-stone-100">
-              Amenities & Key Features
-            </h2>
-            <p className="text-xs text-stone-500 mb-5">
-              Check all amenities currently available at this property.
-            </p>
+          {/* Section 4: Amenities */}
+          <div className="bg-white rounded-3xl shadow-card border border-stone-200/90 p-6 sm:p-8">
+            <div className="pb-3 mb-4 border-b border-stone-100">
+              <h2 className="text-base font-display font-bold text-stone-900 flex items-center gap-2">
+                <Sparkles size={16} className="text-accent-500" />
+                4. Amenities Available
+              </h2>
+            </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {AMENITIES.map(amenity => (
@@ -318,29 +328,83 @@ export const ListPropertyPage: React.FC = () => {
                   name="amenities"
                   control={control}
                   render={({ field }) => (
-                    <Checkbox
-                      id={`list-amenity-${amenity.value}`}
-                      label={amenity.label}
-                      checked={field.value?.includes(amenity.value)}
-                      onChange={e => {
-                        const current = field.value || []
-                        if (e.target.checked) {
-                          field.onChange([...current, amenity.value])
-                        } else {
-                          field.onChange(current.filter((val: string) => val !== amenity.value))
-                        }
-                      }}
-                    />
+                    <label className="flex items-center gap-2.5 p-3 rounded-xl bg-stone-50 border border-stone-200/70 hover:bg-stone-100 cursor-pointer text-xs font-semibold text-stone-800 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={field.value?.includes(amenity.value)}
+                        onChange={e => {
+                          const current = field.value || []
+                          if (e.target.checked) {
+                            field.onChange([...current, amenity.value])
+                          } else {
+                            field.onChange(current.filter((v: string) => v !== amenity.value))
+                          }
+                        }}
+                        className="accent-primary-700 rounded"
+                      />
+                      <span className="text-base">{amenity.icon}</span>
+                      <span>{amenity.label}</span>
+                    </label>
                   )}
                 />
               ))}
             </div>
           </div>
 
-          {/* Section 4: Terms & Consents */}
-          <div className="bg-white rounded-3xl shadow-card border border-stone-100 p-6 sm:p-8 space-y-4">
-            <h2 className="text-lg font-semibold text-stone-900 mb-2 pb-3 border-b border-stone-100">
-              Confirmation & Consent
+          {/* Section 5: Photo Upload Area */}
+          <div className="bg-white rounded-3xl shadow-card border border-stone-200/90 p-6 sm:p-8">
+            <div className="pb-3 mb-4 border-b border-stone-100">
+              <h2 className="text-base font-display font-bold text-stone-900 flex items-center gap-2">
+                <ImageIcon size={16} className="text-primary-700" />
+                5. Property Photos (Max 12)
+              </h2>
+              <p className="text-xs text-stone-500 mt-0.5">
+                Listings with clear living room, bedroom, and kitchen photos rent 3x faster.
+              </p>
+            </div>
+
+            {/* Drag & Drop Box */}
+            <label className="border-2 border-dashed border-stone-300 hover:border-primary-600 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer bg-stone-50 hover:bg-primary-50/40 transition-colors mb-4 text-center">
+              <UploadCloud size={36} className="text-primary-700 mb-2" />
+              <p className="text-sm font-bold text-stone-800">Click to upload property photos</p>
+              <p className="text-xs text-stone-400 mt-1">PNG, JPG, WEBP up to 5MB each</p>
+              <input
+                type="file"
+                multiple
+                accept="image/png,image/jpeg,image/webp"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </label>
+
+            {/* Preview Thumbnails */}
+            {photos.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {photos.map((photo, i) => (
+                  <div key={photo.id} className="relative aspect-video rounded-xl overflow-hidden border border-stone-200 group">
+                    <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                    {i === 0 && (
+                      <span className="absolute top-1 left-1 bg-primary-900/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                        Cover
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(photo.id)}
+                      className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-rose-600 text-white rounded-full transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Section 6: Consents & Submit */}
+          <div className="bg-white rounded-3xl shadow-card border border-stone-200/90 p-6 sm:p-8 space-y-4">
+            <h2 className="text-base font-display font-bold text-stone-900 pb-2 border-b border-stone-100">
+              6. Legal Authorization & Free Listing Terms
             </h2>
 
             <Checkbox
@@ -364,12 +428,13 @@ export const ListPropertyPage: React.FC = () => {
                 size="lg"
                 fullWidth
                 loading={isSubmitting}
+                className="bg-primary-700 hover:bg-primary-800 text-white font-bold h-14 shadow-teal-glow text-base"
                 rightIcon={<ArrowRight size={18} />}
               >
                 Submit Property for Verification
               </Button>
               <p className="text-center text-xs text-stone-500 mt-3">
-                Listing on NIVASA is 100% free of charge. No upfront fees.
+                Zero listing fee • Zero tenant brokerage • 100% Free
               </p>
             </div>
           </div>
@@ -378,5 +443,4 @@ export const ListPropertyPage: React.FC = () => {
     </div>
   )
 }
-
 export default ListPropertyPage

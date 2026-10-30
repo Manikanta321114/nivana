@@ -16,24 +16,24 @@
   }
 
   body {
-    @apply bg-bg-base text-stone-900 font-sans text-base leading-relaxed;
+    @apply bg-stone-50 text-stone-900 font-sans text-base leading-relaxed;
     min-height: 100vh;
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display leading-tight tracking-tight;
+    @apply font-display leading-tight tracking-tight text-charcoal;
   }
 
   a { @apply transition-colors duration-200; }
 
   img { @apply max-w-full h-auto; }
 
-  /* Remove default button styles in places where we override */
+  /* Default button pointer */
   button { @apply cursor-pointer; }
 
-  /* Scrollbar styling */
+  /* Custom scrollbar matching warm cream and teal */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { @apply bg-stone-100; }
   ::-webkit-scrollbar-thumb { @apply bg-stone-300 rounded-full; }
@@ -42,55 +42,55 @@
 
 /* ── Component utilities ─────────────────────────────────────────── */
 @layer components {
-  /* Container that respects our max-width with horizontal padding */
+  /* Container with standard max-width */
   .page-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* Section vertical rhythm */
+  /* Section vertical spacing */
   .section {
-    @apply py-16 lg:py-24;
+    @apply py-14 lg:py-20;
   }
 
-  /* Card base */
+  /* Card base — warm cream border, rounded-2xl, soft teal shadow */
   .card {
-    @apply bg-white rounded-2xl shadow-card border border-stone-100 overflow-hidden transition-shadow duration-300;
+    @apply bg-white rounded-2xl shadow-card border border-stone-200/80 overflow-hidden transition-all duration-300;
   }
   .card:hover {
-    @apply shadow-card-hover;
+    @apply shadow-card-hover border-stone-300/90;
   }
 
-  /* Focus ring — green brand */
+  /* Focus ring — teal brand */
   .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2;
   }
 
   /* Input base */
   .input-base {
     @apply w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-900 placeholder-stone-400
            transition-all duration-200 text-sm
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+           focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600;
   }
   .input-base:disabled {
     @apply bg-stone-50 text-stone-400 cursor-not-allowed;
   }
 
   /* Status badge colours */
-  .badge-new          { @apply bg-blue-100 text-blue-800; }
+  .badge-new          { @apply bg-sky-100 text-sky-800; }
   .badge-pending      { @apply bg-amber-100 text-amber-800; }
-  .badge-review       { @apply bg-violet-100 text-violet-800; }
-  .badge-approved     { @apply bg-emerald-100 text-emerald-800; }
-  .badge-rejected     { @apply bg-red-100 text-red-800; }
-  .badge-published    { @apply bg-emerald-100 text-emerald-800; }
+  .badge-review       { @apply bg-purple-100 text-purple-800; }
+  .badge-approved     { @apply bg-teal-100 text-teal-800; }
+  .badge-rejected     { @apply bg-rose-100 text-rose-800; }
+  .badge-published    { @apply bg-primary-100 text-primary-800; }
   .badge-unpublished  { @apply bg-stone-100 text-stone-600; }
-  .badge-available    { @apply bg-emerald-100 text-emerald-800; }
+  .badge-available    { @apply bg-teal-100 text-teal-800; }
   .badge-occupied     { @apply bg-stone-100 text-stone-600; }
-  .badge-coming       { @apply bg-blue-100 text-blue-800; }
-  .badge-callback     { @apply bg-orange-100 text-orange-800; }
-  .badge-contacted    { @apply bg-teal-100 text-teal-800; }
+  .badge-coming       { @apply bg-sky-100 text-sky-800; }
+  .badge-callback     { @apply bg-amber-100 text-amber-800; }
+  .badge-contacted    { @apply bg-secondary-100 text-secondary-800; }
   .badge-scheduled    { @apply bg-indigo-100 text-indigo-800; }
-  .badge-completed    { @apply bg-emerald-100 text-emerald-800; }
-  .badge-cancelled    { @apply bg-red-100 text-red-800; }
+  .badge-completed    { @apply bg-teal-100 text-teal-800; }
+  .badge-cancelled    { @apply bg-rose-100 text-rose-800; }
 }
 
 /* ── Leaflet overrides ───────────────────────────────────────────── */
@@ -102,8 +102,8 @@
 .leaflet-popup-content-wrapper {
   border-radius: 1rem !important;
   padding: 0 !important;
-  box-shadow: 0 8px 25px -5px rgb(0 0 0 / 0.15) !important;
-  border: 1px solid #e8e3db;
+  box-shadow: 0 10px 25px -5px rgba(10, 96, 103, 0.2) !important;
+  border: 1px solid #eae6df;
 }
 
 .leaflet-popup-content {
@@ -123,7 +123,7 @@
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .house-pin-container:hover, .house-pin-container.active {
-  transform: scale(1.15) translateY(-4px);
+  transform: scale(1.12) translateY(-4px);
   z-index: 1000 !important;
 }
 
@@ -131,21 +131,21 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  background: #185539;
+  background: #0a6067;
   color: #ffffff;
   padding: 4px 9px 4px 6px;
   border-radius: 9999px;
   border: 2px solid #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(10, 96, 103, 0.35);
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
 .house-pin-container.active .house-pin-bubble {
-  background: #b45309;
-  border-color: #fef3c7;
-  box-shadow: 0 6px 18px rgba(180, 83, 9, 0.45);
+  background: #d79d49;
+  border-color: #faf5e1;
+  box-shadow: 0 6px 18px rgba(215, 157, 73, 0.5);
 }
 
 .house-symbol-icon {
@@ -164,11 +164,11 @@
   height: 0;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 5px solid #185539;
+  border-top: 5px solid #0a6067;
   margin-top: -1px;
 }
 .house-pin-container.active .house-pin-arrow {
-  border-top-color: #b45309;
+  border-top-color: #d79d49;
 }
 
 /* Current User Location Marker */
@@ -184,10 +184,10 @@
   transform: translate(-50%, -50%);
   width: 14px;
   height: 14px;
-  background: #2563eb;
+  background: #0d9488;
   border: 2.5px solid #ffffff;
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.6);
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.6);
   z-index: 2;
 }
 .current-user-radar {
@@ -197,7 +197,7 @@
   transform: translate(-50%, -50%);
   width: 32px;
   height: 32px;
-  background: rgba(37, 99, 235, 0.35);
+  background: rgba(20, 184, 166, 0.35);
   border-radius: 50%;
   animation: radar-pulse 2s infinite ease-out;
   z-index: 1;
@@ -213,7 +213,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: #2563eb;
+  background: #0a6067;
   color: #ffffff;
   padding: 4px 8px;
   border-radius: 999px;
@@ -221,12 +221,12 @@
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 12px rgba(10, 96, 103, 0.35);
 }
 
 /* Custom rent marker */
 .rent-marker {
-  background: #1e6a4a;
+  background: #0a6067;
   color: #fff;
   border-radius: 999px;
   padding: 4px 10px;
@@ -234,30 +234,30 @@
   font-weight: 600;
   font-family: 'Inter', sans-serif;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+  box-shadow: 0 2px 8px rgba(10, 96, 103, 0.3);
   border: 2px solid #fff;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .rent-marker:hover {
   transform: scale(1.08);
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.30);
+  box-shadow: 0 4px 16px rgba(10, 96, 103, 0.45);
 }
 
 /* ── Demo data banner ────────────────────────────────────────────── */
 .demo-banner {
   background: repeating-linear-gradient(
     -45deg,
-    #fef3c7,
-    #fef3c7 8px,
-    #fde68a 8px,
-    #fde68a 16px
+    #faf5e1,
+    #faf5e1 8px,
+    #f5e9bd 8px,
+    #f5e9bd 16px
   );
 }
 
 /* ── Animations ─────────────────────────────────────────────────── */
-.animate-fade-in { animation: fadeIn 0.3s ease-out both; }
-.animate-slide-up { animation: slideUp 0.4s ease-out both; }
+.animate-fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 @keyframes fadeIn {
   from { opacity: 0; }

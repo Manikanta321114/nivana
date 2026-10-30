@@ -1,4 +1,5 @@
 """NIVASA API - FastAPI Application Entrypoint."""
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
@@ -14,10 +15,11 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
-# CORS Configuration for the local Vite frontend (http://localhost:5173)
+# CORS Configuration for frontend origins (Local Vite + Production Vercel domain)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=settings.cors_origins,
+    allow_origin_regex=r"^https:\/\/.*\.vercel\.app$" if settings.ENVIRONMENT == "production" else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,16 +37,18 @@ async def root():
         "redoc": "/redoc",
         "health": "/health",
         "status": "online",
+        "environment": settings.ENVIRONMENT,
     }
 
 
 @app.get("/health", tags=["Health"])
 async def health():
-    """Health check endpoint to verify backend service availability."""
+    """Health check endpoint to verify backend service availability on Render."""
     return {
         "status": "ok",
         "app": "NIVASA API",
         "version": settings.VERSION,
+        "environment": settings.ENVIRONMENT,
     }
 
 
@@ -54,4 +58,5 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", settings.PORT))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=settings.ENVIRONMENT != "production")
